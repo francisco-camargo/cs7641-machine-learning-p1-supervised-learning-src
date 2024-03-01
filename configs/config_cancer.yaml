@@ -1,0 +1,81 @@
+project_alias   : 'cancer'
+model_choice    : ['DT'] # ['KNN', 'DT', 'ADA', 'SVM', 'MLP']
+ml_steps        : ['train', 'test'] # ['preprocess', 'train', 'test', 'plot']
+
+preprocess:
+  filename      : 'data.csv'
+  raw_dir       : 'data/raw/'
+  interim_dir   : 'data/interim/'
+  processed_dir : 'data/processed/'
+
+  target_column : 'diagnosis' # use null if data did not have headers
+  headers       : null # use None is headers are in raw data file
+
+  test_size     : 0.25 # Fraction of data that will be in test set
+  random_state  : 42   # seed for splitting data in test and train
+  shuffle       : True # shuffle all the samples
+  stratify      : True # boolean to stratify on target column labels
+
+  save_pkl      : True
+
+train:
+  random_state  : 42
+  oversample    : True
+  verbose       : 1 # int, 1 through 3
+  n_jobs        : -1
+  scoring       : 'f1_weighted' # 'balanced_accuracy'
+    # https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+  return_train_score: False
+
+  train_mode    : 'best' # 'grid', 'vali', 'learn', 'best'
+  validation_exp: 'validation_n_neighbors'
+
+  DT:
+    fixed_param:
+      criterion: 'gini'
+      ccp_alpha: 42
+      max_depth: 42
+      min_samples_split: 42
+      min_samples_leaf: 42
+      max_features: 42
+      max_leaf_nodes: 42
+
+    gridsearch:
+      grid_cv: 5 # number of folds to use for gridsearch
+      param_grid:
+        criterion         : ['gini', 'entropy']
+        ccp_alpha         : np.linspace(0, 0.04, 5)
+        # max_depth         : range(1,5)
+        # min_samples_leaf  : range(5,10)
+        # min_samples_split : range(2,10)
+        # max_features: range(20,30)
+        # max_leaf_nodes: np.linspace(20,100,10, dtype='int')
+
+    validation_max_depth: # 
+      n_splits: 100
+      xscale  : 'linear'
+      ind_var:
+        max_depth   : range(1,10)
+
+    validation_max_leaf_nodes: # 
+      n_splits: 100
+      xscale  : 'linear'
+      ind_var:
+        max_leaf_nodes: range(2,10)
+
+    validation_min_samples_split: # default is best
+      n_splits: 100
+      xscale  : 'log'
+      ind_var:
+        min_samples_split: np.logspace( 0.4, np.log10(34), 25, dtype='int')
+
+    validation_max_features: # 
+      n_splits: 200
+      xscale  : 'linear'
+      ind_var:
+        max_features: range(1,29,2)
+
+    learning: # tells me we could use more data!
+      n_splits: 50 # number of splits to use for ShuffleSplit cv
+      xscale  : 'linear'
+      train_sizes: np.linspace(.1, 1.0, 20)
